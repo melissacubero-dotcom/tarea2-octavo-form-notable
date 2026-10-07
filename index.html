@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarea #2 — Cuaderno interactivo: Fórmulas Notables</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#F1F0F5;
+    --paper-line:#E1DEEA;
+    --ink:#211B2E;
+    --ink-soft:#5B5470;
+    --accent:#7C5CBF;
+    --accent-soft:#EAE1F7;
+    --ok:#2F9E6E;
+    --ok-soft:#DCF3E8;
+    --bad:#C24444;
+    --bad-soft:#FBE1E1;
+    --card:#FFFFFF;
+    --slate:#2B2440;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(135deg, var(--paper-line) 0 1px, transparent 1px 22px),
+      var(--paper);
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    padding:28px 18px 70px;
+    min-height:100vh;
+  }
+  .wrap{max-width:940px;margin:0 auto;}
+
+  .progress-wrap{
+    position:fixed;left:0;bottom:0;width:100%;
+    background:#fff;border-top:1px solid #E4E0EE;
+    padding:9px 18px 10px;z-index:50;
+    box-shadow:0 -6px 16px -10px rgba(33,27,46,.25);
+  }
+  .progress-track{
+    height:8px;max-width:940px;margin:0 auto 6px;
+    background:#EAE6F2;border-radius:999px;overflow:hidden;
+  }
+  .progress-fill{height:100%;width:33.3%;background:var(--accent);transition:width .3s ease;}
+  .progress-label{max-width:940px;margin:0 auto;text-align:center;font-size:12px;color:var(--ink-soft);}
+
+  .top-banner{
+    background:linear-gradient(135deg,#211B2E,#3A2E5C);
+    color:#fff;border-radius:16px;padding:24px 28px;margin-bottom:22px;
+    box-shadow:0 18px 40px -22px rgba(33,27,46,.5);
+  }
+  .task-pill{
+    display:inline-block;background:#7C5CBF;color:#fff;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12.5px;
+    letter-spacing:.04em;text-transform:uppercase;
+    padding:5px 12px;border-radius:999px;margin-bottom:10px;
+  }
+  .top-banner h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(21px,3.2vw,29px);
+    font-weight:600;margin:0 0 8px;line-height:1.15;
+  }
+  .top-banner .sub{margin:0 0 10px;font-size:15px;opacity:.92;}
+  .top-banner .authors{margin:0;font-size:13px;opacity:.72;}
+
+  .binder{display:flex;gap:0;background:var(--card);border-radius:18px;box-shadow:0 18px 40px -22px rgba(33,27,46,.35);overflow:hidden;border:1px solid #E9E5F1;}
+  .spiral{
+    flex:0 0 34px;
+    background:repeating-linear-gradient(180deg, transparent 0 18px, #EEEAF6 18px 20px);
+    position:relative;
+    border-right:1px dashed #D8D2E6;
+  }
+  .spiral span{
+    position:absolute;left:50%;transform:translateX(-50%);
+    width:12px;height:12px;border-radius:50%;
+    background:var(--paper);border:2px solid #C4BAD8;
+  }
+  .card-body{flex:1;min-width:0;padding:26px 30px 34px;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:22px;border-bottom:2px solid #ECE7F5;}
+  .tab-btn{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;font-size:15px;
+    background:#F5F3FA;color:var(--ink-soft);
+    border:1px solid #ECE7F5;border-bottom:none;
+    padding:10px 18px 12px;
+    border-radius:12px 12px 0 0;
+    cursor:pointer;
+    transform:translateY(2px);
+    transition:transform .15s ease, color .15s ease, background .15s ease;
+  }
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.active{
+    background:var(--card);
+    color:var(--accent);
+    border-color:#ECE7F5;
+    transform:translateY(0);
+    box-shadow:0 -2px 0 var(--accent) inset;
+  }
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .lead{color:var(--ink-soft);font-size:14.5px;line-height:1.6;margin:0 0 22px;max-width:66ch;}
+  .lead b{color:var(--ink);}
+
+  .rubric-title{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;
+    font-size:22px;margin:0 0 6px;color:var(--ink);
+    border-bottom:2px solid var(--accent);padding-bottom:8px;
+  }
+
+  .feedback-box{
+    border-left:4px solid var(--accent);
+    background:#F7F3FC;
+    border-radius:0 10px 10px 0;
+    padding:12px 16px;margin-bottom:10px;
+    font-size:13.5px;line-height:1.55;color:var(--ink);
+  }
+  .feedback-box b{color:var(--accent);}
+
+  .formula-strip{
+    display:flex;gap:12px;flex-wrap:wrap;
+    margin:0 0 20px;
+  }
+  .formula-chip{
+    flex:1;min-width:220px;
+    background:#F5F3FA;border:1px solid #ECE7F5;border-radius:12px;
+    padding:14px 16px;text-align:center;
+  }
+  .formula-chip .name{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);font-weight:700;margin-bottom:6px;}
+  .formula-chip .tex{font-size:16px;color:var(--accent);}
+
+  .student-hint{font-size:13.5px;color:var(--ink-soft);margin:0 0 8px;}
+  .student-hint b{color:var(--ink);}
+  .student-bar{display:flex;flex-wrap:wrap;gap:14px;background:#F5F3FA;border:1px solid #ECE7F5;border-radius:12px;padding:12px 16px;margin-bottom:20px;}
+  .student-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px;}
+  .student-field label{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);font-weight:600;}
+  .student-field input, .student-field select{
+    border:1.5px solid #DED7EC;border-radius:8px;padding:8px 10px;
+    font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:#fff;
+  }
+  .student-field input:focus, .student-field select:focus{outline:none;border-color:var(--accent);}
+  .student-field.section-field{max-width:200px;}
+
+  .qcard{border:1px solid #ECE7F5;border-radius:14px;padding:18px 20px 20px;margin-bottom:16px;background:#FCFBFE;}
+  .qhead{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .qnum{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;
+    width:28px;height:28px;border-radius:50%;
+    background:var(--slate);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:13.5px;
+    flex:0 0 auto;
+  }
+  .qmeta{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);font-weight:600;}
+  .qprompt{font-size:15.5px;line-height:1.55;margin:0 0 14px;color:var(--ink);}
+
+  .opts{display:flex;flex-direction:column;gap:8px;}
+  .opt{
+    display:flex;align-items:center;gap:10px;
+    border:1.5px solid #E4DFF0;border-radius:10px;
+    padding:10px 12px;cursor:pointer;
+    background:#fff;font-size:14.5px;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .opt:hover{border-color:var(--accent);}
+  .opt.selected{border-color:var(--accent);background:var(--accent-soft);}
+  .opt input{accent-color:var(--accent);width:16px;height:16px;flex:0 0 auto;}
+
+  .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;}
+  .btn{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14.5px;
+    border:none;border-radius:10px;padding:12px 22px;cursor:pointer;
+    background:var(--accent);color:#fff;
+    transition:filter .12s ease;
+  }
+  .btn:hover{filter:brightness(1.06);}
+  .btn.secondary{background:#F1EDF9;color:var(--ink);border:1px solid #E4DFF0;}
+  .btn:disabled{background:#D2CBE0;cursor:not-allowed;}
+
+  .notice{border:1.5px dashed #D2CBE0;border-radius:12px;padding:26px 20px;text-align:center;color:var(--ink-soft);font-size:14.5px;}
+
+  .score-hero{
+    display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+    background:linear-gradient(135deg,#211B2E,#3A2E5C);
+    color:#fff;border-radius:16px;padding:22px 26px;margin-bottom:22px;
+  }
+  .score-ring{position:relative;width:96px;height:96px;flex:0 0 auto;}
+  .score-ring svg{transform:rotate(-90deg);}
+  .score-ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:19px;}
+  .score-text h2{font-family:'Space Grotesk',sans-serif;margin:0 0 4px;font-size:20px;}
+  .score-text p{margin:0;font-size:13.5px;opacity:.85;}
+
+  table.rubric{width:100%;border-collapse:collapse;font-size:13.3px;margin-top:6px;}
+  table.rubric th, table.rubric td{border:1px solid #ECE7F5;padding:10px;text-align:left;vertical-align:top;line-height:1.45;}
+  table.rubric th{background:#211B2E;color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12.8px;}
+  table.rubric td.crit{font-weight:600;background:#F5F3FA;width:19%;}
+  table.rubric td.level0{background:#FBE1E1;}
+  table.rubric td.level1{background:#FCEFD8;}
+  table.rubric td.level2{background:#FFF6D9;}
+  table.rubric td.level3{background:#DCF3E8;}
+  table.rubric td.pts{width:9%;text-align:center;font-family:'Space Grotesk',sans-serif;font-weight:600;}
+  .achieved{outline:3px solid var(--accent);outline-offset:-3px;position:relative;}
+  .achieved::after{content:"✓ obtenido";position:absolute;top:4px;right:6px;font-size:10px;font-weight:700;color:var(--accent);}
+  .total-row td{background:#211B2E !important;color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:600;}
+
+  .footnote{color:var(--ink-soft);font-size:12.5px;margin-top:18px;line-height:1.6;}
+
+  @media (max-width:640px){
+    .card-body{padding:20px 16px 28px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top-banner">
+    <span class="task-pill">Tarea #2</span>
+    <h1>Cuaderno Interactivo — Fórmulas Notables</h1>
+    <p class="sub">Cuadrado de una suma · Cuadrado de una diferencia · Diferencia de cuadrados</p>
+    <p class="authors">MSc. Sarita Melissa Cubero Solano</p>
+  </div>
+
+  <div class="binder">
+    <div class="spiral" id="spiral"></div>
+    <div class="card-body">
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="rubrica">📋 Rúbrica</button>
+        <button class="tab-btn" data-tab="resultados">📊 Resultados</button>
+        <button class="tab-btn" data-tab="ejercicios">📝 Selección única</button>
+      </div>
+
+      <!-- RÚBRICA -->
+      <div class="panel active" id="panel-rubrica">
+        <h2 class="rubric-title">Rúbrica de evaluación — Tarea #2</h2>
+        <p class="lead">Esta rúbrica describe los criterios con los que se evalúa el desempeño del estudiante en el cuestionario de selección única sobre las <b>tres fórmulas notables</b>. La columna resaltada se completa automáticamente según las respuestas del estudiante; puede descargarse en PDF para entregarla impresa a la docente. Valor total: <b>12 puntos</b> (3 criterios × 4 puntos).</p>
+
+        <div class="formula-strip">
+          <div class="formula-chip">
+            <div class="name">Cuadrado de una suma</div>
+            <div class="tex">$(a+b)^{2}=a^{2}+2ab+b^{2}$</div>
+          </div>
+          <div class="formula-chip">
+            <div class="name">Cuadrado de una diferencia</div>
+            <div class="tex">$(a-b)^{2}=a^{2}-2ab+b^{2}$</div>
+          </div>
+          <div class="formula-chip">
+            <div class="name">Diferencia de cuadrados</div>
+            <div class="tex">$(a+b)(a-b)=a^{2}-b^{2}$</div>
+          </div>
+        </div>
+
+        <p class="student-hint">✏️ El estudiante debe escribir su <b>nombre completo</b> y seleccionar su <b>sección</b> antes de calificar el cuaderno.</p>
+        <div class="student-bar">
+          <div class="student-field">
+            <label for="input-nombre">Nombre del estudiante</label>
+            <input type="text" id="input-nombre" placeholder="Nombre completo del estudiante">
+          </div>
+          <div class="student-field section-field">
+            <label for="input-seccion">Sección</label>
+            <select id="input-seccion">
+              <option value="" disabled selected>Seleccione su sección</option>
+              <option value="8-1">8-1</option>
+              <option value="8-2">8-2</option>
+              <option value="8-3">8-3</option>
+              <option value="8-4">8-4</option>
+              <option value="8-5">8-5</option>
+              <option value="8-6">8-6</option>
+              <option value="8-7">8-7</option>
+              <option value="8-8">8-8</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="rubrica-static"></div>
+      </div>
+
+      <!-- RESULTADOS -->
+      <div class="panel" id="panel-resultados">
+        <div id="resultados-content">
+          <div class="notice">El estudiante debe responder los 30 ítems en la pestaña <b>Selección única</b> y presionar «Calificar cuaderno» para ver aquí su puntaje y la rúbrica evaluada.</div>
+        </div>
+        <div class="actions" id="resultados-actions" style="display:none;">
+          <button class="btn secondary" id="btn-pdf">⬇️ Descargar PDF</button>
+        </div>
+      </div>
+
+      <!-- EJERCICIOS -->
+      <div class="panel" id="panel-ejercicios">
+        <p class="lead"><b>Indicaciones:</b> el estudiante debe leer cada ítem con cuidado y seleccionar la única opción correcta. Los ejercicios están ordenados de menor a mayor complejidad y responden a las tres fórmulas notables. Al terminar, debe presionar <b>«Calificar cuaderno»</b> para ver sus resultados y la rúbrica evaluada.</p>
+        <div id="questions"></div>
+        <div class="actions">
+          <button class="btn secondary" id="btn-clear">Borrar respuestas</button>
+          <button class="btn" id="btn-grade">Calificar cuaderno</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="footnote">Tarea #2 — Cuaderno generado para uso docente sobre la unidad «Fórmulas Notables» (cuadrado de una suma, cuadrado de una diferencia y diferencia de cuadrados). Los ejercicios son de elaboración propia.</p>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="progress-label" id="progress-label">Progreso: 1/3 pestañas visitadas</div>
+</div>
+
+<script>
+/* ---------- decorative spiral dots ---------- */
+(function(){
+  const s=document.getElementById('spiral');
+  for(let i=0;i<26;i++){
+    const dot=document.createElement('span');
+    dot.style.top=(20+i*30)+'px';
+    s.appendChild(dot);
+  }
+})();
+
+/* ---------- question bank ---------- */
+/* skill 1: cuadrado de una suma  (a+b)^2 = a^2+2ab+b^2
+   skill 2: cuadrado de una diferencia (a-b)^2 = a^2-2ab+b^2
+   skill 3: diferencia de cuadrados (a+b)(a-b) = a^2-b^2 */
+const questions = [
+  { id:1, skill:1, diff:'Inicial', prompt:'El resultado de $(x+5)^{2}$ es:',
+    options:[{key:'A',text:'$x^{2}+25$'},{key:'B',text:'$x^{2}+10x+25$'},{key:'C',text:'$x^{2}+5x+25$'}], correct:'B' },
+  { id:2, skill:1, diff:'Inicial', prompt:'El resultado de $(a+7)^{2}$ es:',
+    options:[{key:'A',text:'$a^{2}+14a+49$'},{key:'B',text:'$a^{2}+7a+49$'},{key:'C',text:'$a^{2}+49$'}], correct:'A' },
+  { id:3, skill:1, diff:'Intermedio', prompt:'El resultado de $(2x+3)^{2}$ es:',
+    options:[{key:'A',text:'$2x^{2}+12x+9$'},{key:'B',text:'$4x^{2}+6x+9$'},{key:'C',text:'$4x^{2}+12x+9$'}], correct:'C' },
+  { id:4, skill:1, diff:'Intermedio', prompt:'El resultado de $(x+y)^{2}$ es:',
+    options:[{key:'A',text:'$x^{2}+y^{2}$'},{key:'B',text:'$x^{2}+2xy+y^{2}$'},{key:'C',text:'$x^{2}+xy+y^{2}$'}], correct:'B' },
+  { id:5, skill:1, diff:'Avanzado', prompt:'El resultado de $(3m+4n)^{2}$ es:',
+    options:[{key:'A',text:'$9m^{2}+24mn+16n^{2}$'},{key:'B',text:'$9m^{2}+12mn+16n^{2}$'},{key:'C',text:'$6m^{2}+24mn+8n^{2}$'}], correct:'A' },
+  { id:6, skill:1, diff:'Intermedio', prompt:'En el desarrollo de $(x+9)^{2}$, el término central (doble producto) corresponde a:',
+    options:[{key:'A',text:'$9x$'},{key:'B',text:'$18x$'},{key:'C',text:'$81x$'}], correct:'B' },
+  { id:7, skill:1, diff:'Avanzado', prompt:'Si el resultado de elevar un binomio al cuadrado es $x^{2}+16x+64$, ¿cuál es ese binomio?',
+    options:[{key:'A',text:'$(x+4)^{2}$'},{key:'B',text:'$(x+8)^{2}$'},{key:'C',text:'$(x+16)^{2}$'}], correct:'B' },
+  { id:8, skill:1, diff:'Inicial', prompt:'El resultado de $(5+x)^{2}$ es:',
+    options:[{key:'A',text:'$25+10x+x^{2}$'},{key:'B',text:'$25+5x+x^{2}$'},{key:'C',text:'$25+x^{2}$'}], correct:'A' },
+  { id:9, skill:1, diff:'Avanzado', prompt:'El resultado de $\\left(a+\\dfrac{1}{2}\\right)^{2}$ es:',
+    options:[{key:'A',text:'$a^{2}+a+\\dfrac{1}{4}$'},{key:'B',text:'$a^{2}+\\dfrac{1}{2}a+\\dfrac{1}{4}$'},{key:'C',text:'$a^{2}+a+\\dfrac{1}{2}$'}], correct:'A' },
+  { id:10, skill:1, diff:'Intermedio', prompt:'¿Cuál de las siguientes expresiones es un trinomio cuadrado perfecto que corresponde al cuadrado de una suma?',
+    options:[{key:'A',text:'$x^{2}+5x+6$'},{key:'B',text:'$x^{2}+6x+9$'},{key:'C',text:'$x^{2}+6x+8$'}], correct:'B' },
+
+  { id:11, skill:2, diff:'Inicial', prompt:'El resultado de $(x-6)^{2}$ es:',
+    options:[{key:'A',text:'$x^{2}-36$'},{key:'B',text:'$x^{2}-12x+36$'},{key:'C',text:'$x^{2}-6x+36$'}], correct:'B' },
+  { id:12, skill:2, diff:'Inicial', prompt:'El resultado de $(a-9)^{2}$ es:',
+    options:[{key:'A',text:'$a^{2}-18a+81$'},{key:'B',text:'$a^{2}-9a+81$'},{key:'C',text:'$a^{2}-81$'}], correct:'A' },
+  { id:13, skill:2, diff:'Intermedio', prompt:'El resultado de $(3x-2)^{2}$ es:',
+    options:[{key:'A',text:'$9x^{2}-4x+4$'},{key:'B',text:'$9x^{2}-12x+4$'},{key:'C',text:'$3x^{2}-12x+4$'}], correct:'B' },
+  { id:14, skill:2, diff:'Intermedio', prompt:'El resultado de $(x-y)^{2}$ es:',
+    options:[{key:'A',text:'$x^{2}-y^{2}$'},{key:'B',text:'$x^{2}-xy+y^{2}$'},{key:'C',text:'$x^{2}-2xy+y^{2}$'}], correct:'C' },
+  { id:15, skill:2, diff:'Avanzado', prompt:'El resultado de $(4m-5n)^{2}$ es:',
+    options:[{key:'A',text:'$16m^{2}-40mn+25n^{2}$'},{key:'B',text:'$16m^{2}-20mn+25n^{2}$'},{key:'C',text:'$8m^{2}-40mn+10n^{2}$'}], correct:'A' },
+  { id:16, skill:2, diff:'Intermedio', prompt:'En el desarrollo de $(x-7)^{2}$, el término central (doble producto) corresponde a:',
+    options:[{key:'A',text:'$-7x$'},{key:'B',text:'$-14x$'},{key:'C',text:'$-49x$'}], correct:'B' },
+  { id:17, skill:2, diff:'Avanzado', prompt:'Si el resultado de elevar un binomio al cuadrado es $x^{2}-20x+100$, ¿cuál es ese binomio?',
+    options:[{key:'A',text:'$(x-5)^{2}$'},{key:'B',text:'$(x-10)^{2}$'},{key:'C',text:'$(x-20)^{2}$'}], correct:'B' },
+  { id:18, skill:2, diff:'Inicial', prompt:'El resultado de $(7-x)^{2}$ es:',
+    options:[{key:'A',text:'$49-14x+x^{2}$'},{key:'B',text:'$49-7x+x^{2}$'},{key:'C',text:'$49-x^{2}$'}], correct:'A' },
+  { id:19, skill:2, diff:'Avanzado', prompt:'El resultado de $\\left(a-\\dfrac{1}{3}\\right)^{2}$ es:',
+    options:[{key:'A',text:'$a^{2}-\\dfrac{1}{3}a+\\dfrac{1}{9}$'},{key:'B',text:'$a^{2}-\\dfrac{2}{3}a+\\dfrac{1}{9}$'},{key:'C',text:'$a^{2}-\\dfrac{2}{3}a+\\dfrac{1}{3}$'}], correct:'B' },
+  { id:20, skill:2, diff:'Intermedio', prompt:'¿Cuál de las siguientes expresiones es un trinomio cuadrado perfecto que corresponde al cuadrado de una diferencia?',
+    options:[{key:'A',text:'$x^{2}-7x+12$'},{key:'B',text:'$x^{2}-8x+12$'},{key:'C',text:'$x^{2}-8x+16$'}], correct:'C' },
+
+  { id:21, skill:3, diff:'Inicial', prompt:'El resultado de $(x+4)(x-4)$ es:',
+    options:[{key:'A',text:'$x^{2}-16$'},{key:'B',text:'$x^{2}+16$'},{key:'C',text:'$x^{2}-8x-16$'}], correct:'A' },
+  { id:22, skill:3, diff:'Inicial', prompt:'El resultado de $(a+10)(a-10)$ es:',
+    options:[{key:'A',text:'$a^{2}-20$'},{key:'B',text:'$a^{2}-100$'},{key:'C',text:'$a^{2}+100$'}], correct:'B' },
+  { id:23, skill:3, diff:'Intermedio', prompt:'El resultado de $(2x+3)(2x-3)$ es:',
+    options:[{key:'A',text:'$4x^{2}-9$'},{key:'B',text:'$2x^{2}-9$'},{key:'C',text:'$4x^{2}-6$'}], correct:'A' },
+  { id:24, skill:3, diff:'Avanzado', prompt:'El resultado de $(5m+2n)(5m-2n)$ es:',
+    options:[{key:'A',text:'$25m^{2}-4n^{2}$'},{key:'B',text:'$25m^{2}-2n^{2}$'},{key:'C',text:'$10m^{2}-4n^{2}$'}], correct:'A' },
+  { id:25, skill:3, diff:'Intermedio', prompt:'La factorización de $x^{2}-49$ corresponde a:',
+    options:[{key:'A',text:'$(x+7)(x-7)$'},{key:'B',text:'$(x+49)(x-1)$'},{key:'C',text:'$(x-7)^{2}$'}], correct:'A' },
+  { id:26, skill:3, diff:'Avanzado', prompt:'La factorización de $9a^{2}-16$ corresponde a:',
+    options:[{key:'A',text:'$(3a+4)(3a-4)$'},{key:'B',text:'$(9a+16)(a-1)$'},{key:'C',text:'$(3a-4)^{2}$'}], correct:'A' },
+  { id:27, skill:3, diff:'Intermedio', prompt:'El resultado de $(x+y)(x-y)$ es:',
+    options:[{key:'A',text:'$x^{2}-y^{2}$'},{key:'B',text:'$x^{2}+y^{2}$'},{key:'C',text:'$x^{2}-2xy+y^{2}$'}], correct:'A' },
+  { id:28, skill:3, diff:'Avanzado', prompt:'¿Cuál producto notable da como resultado $36-x^{2}$?',
+    options:[{key:'A',text:'$(6+x)(6-x)$'},{key:'B',text:'$(x+6)^{2}$'},{key:'C',text:'$(x-6)^{2}$'}], correct:'A' },
+  { id:29, skill:3, diff:'Avanzado', prompt:'El resultado de $\\left(a+\\dfrac{1}{4}\\right)\\left(a-\\dfrac{1}{4}\\right)$ es:',
+    options:[{key:'A',text:'$a^{2}-\\dfrac{1}{16}$'},{key:'B',text:'$a^{2}-\\dfrac{1}{4}$'},{key:'C',text:'$a^{2}-\\dfrac{1}{8}$'}], correct:'A' },
+  { id:30, skill:3, diff:'Intermedio', prompt:'¿Cuál de las siguientes expresiones NO corresponde a una diferencia de cuadrados factorizable de la forma $a^{2}-b^{2}$?',
+    options:[{key:'A',text:'$x^{2}-25$'},{key:'B',text:'$x^{2}+25$'},{key:'C',text:'$x^{2}-9$'}], correct:'B' }
+];
+
+const skillNames = {
+  1:'El estudiante desarrolla y reconoce el cuadrado de una suma $(a+b)^{2}=a^{2}+2ab+b^{2}$',
+  2:'El estudiante desarrolla y reconoce el cuadrado de una diferencia $(a-b)^{2}=a^{2}-2ab+b^{2}$',
+  3:'El estudiante desarrolla, reconoce y factoriza la diferencia de cuadrados $(a+b)(a-b)=a^{2}-b^{2}$'
+};
+
+const rubricRows = [
+  { skill:1, name:skillNames[1],
+    d0:'El estudiante no responde.',
+    d1:'El estudiante desarrolla de forma incorrecta el cuadrado de una suma en la mayoría de los ítems.',
+    d2:'El estudiante desarrolla parcialmente (con errores de procedimiento) el cuadrado de una suma en la mayoría de los ítems.',
+    d3:'El estudiante desarrolla y reconoce correctamente el cuadrado de una suma en todos los ítems.',
+    tip:'El estudiante debe repasar que $(a+b)^{2}=a^{2}+2ab+b^{2}$: el cuadrado del primer término, más el doble producto, más el cuadrado del segundo término.' },
+  { skill:2, name:skillNames[2],
+    d0:'El estudiante no responde.',
+    d1:'El estudiante desarrolla de forma incorrecta el cuadrado de una diferencia en la mayoría de los ítems.',
+    d2:'El estudiante desarrolla parcialmente (con errores de procedimiento) el cuadrado de una diferencia en la mayoría de los ítems.',
+    d3:'El estudiante desarrolla y reconoce correctamente el cuadrado de una diferencia en todos los ítems.',
+    tip:'El estudiante debe repasar que $(a-b)^{2}=a^{2}-2ab+b^{2}$, prestando especial atención al signo negativo del doble producto.' },
+  { skill:3, name:skillNames[3],
+    d0:'El estudiante no responde.',
+    d1:'El estudiante desarrolla o factoriza de forma incorrecta la diferencia de cuadrados en la mayoría de los ítems.',
+    d2:'El estudiante desarrolla o factoriza parcialmente (con errores) la diferencia de cuadrados en la mayoría de los ítems.',
+    d3:'El estudiante desarrolla, reconoce y factoriza correctamente la diferencia de cuadrados en todos los ítems.',
+    tip:'El estudiante debe repasar que $(a+b)(a-b)=a^{2}-b^{2}$ y que una suma de cuadrados, como $x^{2}+25$, no se puede factorizar de esta forma.' }
+];
+
+let selected = {};
+
+/* ---------- render questions ---------- */
+const qContainer = document.getElementById('questions');
+questions.forEach(q=>{
+  const card = document.createElement('div');
+  card.className='qcard';
+
+  const optsHtml = `<div class="opts">${q.options.map(o=>`
+    <label class="opt" data-q="${q.id}" data-k="${o.key}">
+      <input type="radio" name="q${q.id}" value="${o.key}">
+      <span>${o.key}) ${o.text}</span>
+    </label>`).join('')}</div>`;
+
+  card.innerHTML = `
+    <div class="qhead">
+      <div class="qnum">${q.id}</div>
+      <div class="qmeta">${q.diff} · ${skillNames[q.skill]}</div>
+    </div>
+    <p class="qprompt">${q.prompt}</p>
+    ${optsHtml}
+  `;
+  qContainer.appendChild(card);
+});
+
+qContainer.addEventListener('change', e=>{
+  if(e.target.type==='radio'){
+    const qid = parseInt(e.target.name.replace('q',''));
+    const val = e.target.value;
+    selected[qid]=val;
+    document.querySelectorAll(`.opt[data-q="${qid}"]`).forEach(el=>{
+      el.classList.toggle('selected', el.getAttribute('data-k')===val);
+    });
+  }
+});
+
+document.getElementById('btn-clear').addEventListener('click', ()=>{
+  selected = {};
+  document.querySelectorAll('.opt input[type=radio]').forEach(r=>r.checked=false);
+  document.querySelectorAll('.opt.selected').forEach(el=>el.classList.remove('selected'));
+});
+
+/* ---------- tabs + progress ---------- */
+const visitedTabs = new Set(['rubrica']);
+function updateProgress(){
+  const total = document.querySelectorAll('.tab-btn').length;
+  const visited = visitedTabs.size;
+  document.getElementById('progress-fill').style.width = (visited/total*100)+'%';
+  document.getElementById('progress-label').textContent = `Progreso: ${visited}/${total} pestañas visitadas`;
+}
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    visitedTabs.add(btn.dataset.tab);
+    updateProgress();
+    if(window.renderMathInElement){
+      renderMathInElement(document.getElementById('panel-'+btn.dataset.tab), {
+        delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]
+      });
+    }
+  });
+});
+updateProgress();
+
+/* ---------- grading ---------- */
+document.getElementById('btn-grade').addEventListener('click', ()=>{
+  const nombre = document.getElementById('input-nombre').value.trim();
+  const seccion = document.getElementById('input-seccion').value.trim();
+  if(!nombre || !seccion){
+    alert('El estudiante debe completar su nombre y su sección antes de calificar el cuaderno.');
+    if(!nombre) document.getElementById('input-nombre').focus();
+    else document.getElementById('input-seccion').focus();
+    return;
+  }
+  const missing = questions.filter(q=>!selected[q.id]);
+  if(missing.length){
+    alert('Faltan por responder ' + missing.length + ' ítem(s): ' + missing.map(q=>q.id).join(', ') + '.');
+    return;
+  }
+  gradeAndRender(nombre, seccion);
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="resultados"]').classList.add('active');
+  document.getElementById('panel-resultados').classList.add('active');
+  document.getElementById('resultados-actions').style.display='flex';
+  renderMath();
+});
+
+function renderMath(){
+  if(window.renderMathInElement){
+    renderMathInElement(document.body, {
+      delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]
+    });
+  }
+}
+
+function gradeAndRender(nombre, seccion){
+  let correctCount=0;
+  const rows = questions.map(q=>{
+    const chosen = selected[q.id];
+    const isCorrect = chosen===q.correct;
+    if(isCorrect) correctCount++;
+    return {id:q.id, skill:q.skill, isCorrect};
+  });
+
+  const bySkill = {};
+  rubricRows.forEach(r=>{ bySkill[r.skill] = rows.filter(x=>x.skill===r.skill); });
+
+  const levels = {};
+  let totalPts = 0;
+  rubricRows.forEach(r=>{
+    const items = bySkill[r.skill];
+    const nCorrect = items.filter(x=>x.isCorrect).length;
+    const n = items.length;
+    let lvl;
+    if(nCorrect===0) lvl=1;
+    else if(nCorrect===n) lvl=3;
+    else lvl=2;
+    levels[r.skill]=lvl;
+    totalPts += lvl;
+  });
+  const maxPts = rubricRows.length*4;
+  const levelToPts = {0:0,1:1,2:2,3:4};
+
+  const pct = Math.round((correctCount/questions.length)*100);
+  const R = 40, C = 2*Math.PI*R;
+  const dash = (pct/100)*C;
+
+  let totalPtsScaled = 0;
+  rubricRows.forEach(r=>{ totalPtsScaled += levelToPts[levels[r.skill]]; });
+
+  let html = `
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;padding:12px 16px;background:#F5F3FA;border:1px solid #ECE7F5;border-radius:12px;font-size:14px;">
+    <span><b>Estudiante:</b> ${nombre}</span>
+    <span><b>Sección:</b> ${seccion}</span>
+    <span><b>Tarea:</b> #2 — Fórmulas Notables</span>
+  </div>
+  <div class="score-hero">
+    <div class="score-ring">
+      <svg width="96" height="96" viewBox="0 0 96 96">
+        <circle cx="48" cy="48" r="${R}" stroke="#4A4166" stroke-width="10" fill="none"/>
+        <circle cx="48" cy="48" r="${R}" stroke="#7C5CBF" stroke-width="10" fill="none"
+          stroke-dasharray="${dash} ${C}" stroke-linecap="round"/>
+      </svg>
+      <div class="pct">${pct}%</div>
+    </div>
+    <div class="score-text">
+      <h2>${correctCount} de ${questions.length} ítems correctos</h2>
+      <p>Puntaje según rúbrica: <b>${totalPtsScaled} / ${maxPts} puntos</b></p>
+    </div>
+  </div>
+
+  ${(() => {
+    const weak = rubricRows.filter(r => levels[r.skill] < 3);
+    if(weak.length === 0){
+      return `<div class="feedback-box"><b>¡Excelente trabajo!</b> Acertó todos los ítems en las tres fórmulas notables.</div>`;
+    }
+    return `<p class="lead" style="margin-bottom:10px"><b>💡 Retroalimentación</b> — refuerce lo siguiente antes de continuar:</p>
+    ${weak.map(r => `<div class="feedback-box"><b>${r.name}:</b> ${r.tip}</div>`).join('')}`;
+  })()}
+
+  <p class="lead" style="margin-bottom:10px"><b>Rúbrica evaluada</b> — el nivel obtenido en cada habilidad se resalta con un borde.</p>
+  <table class="rubric">
+    <thead><tr><th>Criterio / Indicador</th><th>0</th><th>1</th><th>2</th><th>4</th><th>Puntos obtenidos</th></tr></thead>
+    <tbody>
+    ${rubricRows.map(r=>`
+      <tr>
+        <td class="crit">${r.name}</td>
+        <td class="level0 ${levels[r.skill]===0?'achieved':''}">${r.d0}</td>
+        <td class="level1 ${levels[r.skill]===1?'achieved':''}">${r.d1}</td>
+        <td class="level2 ${levels[r.skill]===2?'achieved':''}">${r.d2}</td>
+        <td class="level3 ${levels[r.skill]===3?'achieved':''}">${r.d3}</td>
+        <td class="pts">${levelToPts[levels[r.skill]]}</td>
+      </tr>`).join('')}
+      <tr class="total-row"><td colspan="5" style="text-align:right;padding-right:14px;">Puntos obtenidos</td><td class="pts">${totalPtsScaled} / ${maxPts}</td></tr>
+    </tbody>
+  </table>
+  `;
+
+  document.getElementById('resultados-content').innerHTML = html;
+}
+
+/* ---------- static rubric tab ---------- */
+(function(){
+  const el = document.getElementById('rubrica-static');
+  el.innerHTML = `
+  <table class="rubric">
+    <thead><tr><th>Criterio / Indicador</th><th>0</th><th>1</th><th>2</th><th>4</th><th>Puntos</th></tr></thead>
+    <tbody>
+    ${rubricRows.map(r=>`
+      <tr>
+        <td class="crit">${r.name}</td>
+        <td>${r.d0}</td>
+        <td>${r.d1}</td>
+        <td>${r.d2}</td>
+        <td>${r.d3}</td>
+        <td class="pts">4</td>
+      </tr>`).join('')}
+      <tr class="total-row"><td colspan="5" style="text-align:right;padding-right:14px;">Valor total</td><td class="pts">12</td></tr>
+    </tbody>
+  </table>`;
+})();
+
+/* ---------- PDF export ---------- */
+document.getElementById('btn-pdf').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btn-pdf');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Generando PDF…';
+
+  const source = document.getElementById('resultados-content');
+  const prevWidth = source.style.width;
+  const prevMaxWidth = source.style.maxWidth;
+  source.style.width = '740px';
+  source.style.maxWidth = '740px';
+
+  try{
+    const canvas = await html2canvas(source, { scale:2, useCORS:true, backgroundColor:'#ffffff' });
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p','mm','a4');
+
+    const margin = 8;
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth - margin*2;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = margin;
+
+    pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+    heightLeft -= (pageHeight - margin*2);
+
+    while (heightLeft > 0){
+      position = margin - (imgHeight - heightLeft);
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - margin*2);
+    }
+
+    pdf.save('resultado_tarea2_formulas_notables.pdf');
+  }catch(err){
+    console.error(err);
+    alert('No se pudo generar el PDF. Intente nuevamente.');
+  }finally{
+    source.style.width = prevWidth;
+    source.style.maxWidth = prevMaxWidth;
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
+window.addEventListener('load', renderMath);
+</script>
+</body>
+</html>
